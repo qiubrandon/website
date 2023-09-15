@@ -18,7 +18,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             print("Trying to access: ", rHeader["Request"][1].strip(), "\n\n")
             pathHTML = './public/index.html'
             pathIMG = './public/image'
-            pathPublic = 'WebAppProject\\public'
+            pathPublic = './public/'
             print("Headers: ", rHeader, "\n\n")
             try: 
                 if host[1][13::] == "" or host[1][13::] == "/":
@@ -31,19 +31,20 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response_headers = response_headers.encode() + htmlContent.encode()
                     self.request.sendall(response_headers)
                 elif "public/image" in host[1]:
-                    pathIMG = pathIMG + "\\" + host[1][13::]
-                    print("Trying to access: ", pathIMG)
+                    pathIMG = pathIMG + "/" + host[1][13::]
+                    print("Trying to access an image:", pathIMG)
                     with open(pathIMG, "rb") as img: # concatenates image name from url to path and read it
                         image = img.read()
                     response_headers = """HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\n\r\n""".format("image/jpeg", len(image))
                     response_headers = response_headers.encode() + image
                     self.request.sendall(response_headers)
                 elif ".css" in host[1] or ".js" in host[1]:
+                    print("Trying to access CSS or JS file")
                     if ".css" in host[1]:
                         mime = 'text/css'
                     else:
                         mime = 'text/js'
-                    pathPublic += "\\" + host[1][7::]
+                    pathPublic += host[1][7::]
                     with open(pathPublic, "rb") as file:
                         readFile = file.read()
                     response_headers = """HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\n\r\n""".format(mime, len(readFile))
