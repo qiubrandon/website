@@ -27,4 +27,11 @@ class Request:
                     self.headers["IndexErrors"].append(head)
                 else:
                     self.headers["IndexErrors"] = list()
+        
+        cookies = self.headers["Cookie"].split(";")
+        for i, cookie in enumerate(cookies):
+            if "visits=" in cookie:
+                v = cookie.split("=")
+                self.headers["Visits"] = v[1]
+            
         #print(self.headers)

@@ -21,8 +21,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             pathPublic = './public/'
             print("Headers: ", rHeader, "\n\n")
             try: 
-                if host[1][13::] == "" or host[1][13::] == "/":
-                    print("Host: ", host)
+                if host[1] == "" or host[1] == "/":
+                    print("Host: ", host[1])
                     with open(pathHTML, "rb") as file: # rb = read as bytes
                         htmlContent = file.read().decode().strip()
                     # manually write response header
@@ -50,6 +50,21 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     response_headers = """HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\n\r\n""".format(mime, len(readFile))
                     response_headers = response_headers.encode() + readFile
                     self.request.sendall(response_headers)
+                elif "visit-counter" in host[1]:
+                    print("Page Visited")
+                    try:
+                        count = rHeader.get("Visits")
+                        if count == 'None':
+                            count = 1
+                        else:
+                            count = int(count)
+                            count+=1
+                    except KeyError:
+                        count = 1
+                    counter = """Visited {} times""".format(count)
+                    response_headers = """HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\nSet-Cookie: visits={}; Max-Age=3600\r\n\r\n""".format("text/plain",len(counter), count)
+                    response_headers += counter
+                    self.request.sendall(response_headers.encode())
                 else:
                     err = 'ERROR 404 :('
                     errorMsg = """HTTP/1.1 404 Not Found\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\n\r\n""".format(len(err))
@@ -57,7 +72,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                     self.request.sendall(errorMsg.encode())
             except IndexError:
                     err = '400 Bad Request'
-                    errorMsg = """HTTP/1.1 404 Not Found\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\n\r\n""".format(len(err))
+                    errorMsg = """HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: {}\r\nX-Content-Type-Options: nosniff\r\n\r\n""".format(len(err))
                     errorMsg += err
                     self.request.sendall(errorMsg.encode())                    
         # TODO: Parse the HTTP request and use self.request.sendall(response) to send your response
